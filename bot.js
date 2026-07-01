@@ -2,10 +2,9 @@ const mineflayer = require('mineflayer');
 const { pathfinder, movements, goals } = require('mineflayer-pathfinder');
 const http = require('http');
 
-// Force Render logs to stream instantly
 process.stdout.isTTY = true;
 
-// Keep-alive web server to ensure Render stays online 24/7
+// Keep-alive server so Render does not freeze the bot's thread
 http.createServer((req, res) => { 
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.write("Bot is active 24/7!"); 
@@ -29,7 +28,17 @@ function createBot() {
     bot.on('login', () => {
         console.log('SUCCESS: hogglin1 connected to server. Waiting for map loading...');
         
-        // Anti-kick anti-afk movements (Fixed arm swings)
+        // Human-like registration delays
+        setTimeout(() => { 
+            bot.chat('/register Mnew1234 Mnew1234'); 
+            console.log('--> Auto-sent register command');
+        }, 5000);
+        
+        setTimeout(() => { 
+            bot.chat('/login Mnew1234'); 
+            console.log('--> Auto-sent login command');
+        }, 9000);
+
         clearInterval(afkInterval); 
         afkInterval = setInterval(() => {
             if (!bot.entity) return;
@@ -43,49 +52,37 @@ function createBot() {
         const cleanText = text.replace(/§[0-9a-fk-or]/g, '').toLowerCase().trim();
         console.log('[CHAT LOG]: ' + cleanText);
         
-        // 1. FIXED: Intelligent Registration handler with safe delays to evade firewalls
         if (cleanText.includes('/register') || cleanText.includes('register ')) {
-            console.log('--> Register prompt detected. Waiting 6 seconds...');
-            setTimeout(() => {
-                bot.chat('/register Mnew1234 Mnew1234');
-                console.log('--> Sent: /register Mnew1234 Mnew1234');
-            }, 6000);
+            setTimeout(() => { bot.chat('/register Mnew1234 Mnew1234'); }, 1500);
             return;
         }
-
-        // 2. FIXED: Intelligent Login handler with safe delays to evade firewalls
         if (cleanText.includes('/login') || cleanText.includes('login ')) {
-            console.log('--> Login prompt detected. Waiting 6 seconds...');
-            setTimeout(() => {
-                bot.chat('/login Mnew1234');
-                console.log('--> Sent: /login Mnew1234');
-            }, 6000);
+            setTimeout(() => { bot.chat('/login Mnew1234'); }, 1500);
             return;
         }
 
-        // 3. FIXED TPA TRIGGER: Runs flawlessly when you whisper it "/tpa"
+        // TPA TRIGGER (Fixed to use standard bot.chat with an anti-kick buffer)
         if (cleanText.includes('tpa') || cleanText.includes('tpa to it')) {
-            // Ignore messages sent by the bot itself to avoid infinite loops
             if (cleanText.includes('hogglin1')) return; 
 
-            console.log('--> TPA requested by whisper! Waiting 3-second anti-cheat bypass delay...');
+            console.log('--> TPA request captured! Processing command delay...');
             setTimeout(() => {
                 if (bot && bot.entity) {
                     bot.chat('/tpa hoglin');
-                    console.log('--> SUCCESS: /tpa hoglin command sent into chat.');
+                    console.log('--> TPA command successfully sent via standard chat input!');
                 }
-            }, 3000);
+            }, 3500); // 3.5 seconds safety window
             return;
         }
 
-        // 4. SPAWN COMMAND TRIGGER
+        // SPAWN TRIGGER
         if (cleanText.includes('/spawn') || cleanText.includes('run /spawn')) {
             if (cleanText.includes('executing') || cleanText.includes('hogglin1')) return; 
-            setTimeout(() => { bot.chat('/spawn'); }, 3000);
+            setTimeout(() => { bot.chat('/spawn'); }, 2000);
             return;
         }
 
-        // 5. COME TO ME TRIGGER
+        // COME TO ME TRIGGER
         if (cleanText.includes('/come') || cleanText.includes('come to me')) {
             if (cleanText.includes('hogglin1')) return;
             let targetEntity = null;
@@ -97,8 +94,7 @@ function createBot() {
                 }
             }
             if (!targetEntity) { 
-                console.log('--> Cannot locate player model. Using /tpa instead.');
-                setTimeout(() => { bot.chat('/tpa hoglin'); }, 3000);
+                setTimeout(() => { bot.chat('/tpa hoglin'); }, 2000);
                 return; 
             }
             
@@ -109,16 +105,15 @@ function createBot() {
             return;
         }
 
-        // 6. COORDINATE TRANSLATOR
+        // COORDINATE TRANSLATOR
         const coordMatches = cleanText.match(/(-?\d+(?:\.\d+)?)\s*[\/\s]\s*(-?\d+(?:\.\d+)?)\s*[\/\s]\s*(-?\d+(?:\.\d+)?)/);
         if (coordMatches) {
             if (cleanText.includes('moving to') || cleanText.includes('hogglin1')) return;
-            const x = parseFloat(coordMatches[1]); 
-            const y = parseFloat(coordMatches[2]); 
-            const z = parseFloat(coordMatches[3]);
+            const x = parseFloat(coordMatches); 
+            const y = parseFloat(coordMatches); 
+            const z = parseFloat(coordMatches);
 
             if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
-                console.log(`--> Moving toward coordinates X:${x} Y:${y} Z:${z}`);
                 const defaultMove = new movements(bot);
                 defaultMove.canDig = false;
                 bot.pathfinder.setMovements(defaultMove);
