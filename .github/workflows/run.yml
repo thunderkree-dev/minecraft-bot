@@ -3,7 +3,7 @@ name: 24-7 AFK Bot Runner
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Allows you to start it manually clicking a button
+  workflow_dispatch: # Allows you to manually launch it via the Actions tab
 
 jobs:
   run-bot:
@@ -18,7 +18,17 @@ jobs:
           node-version: 18
 
       - name: Install Minecraft Bot Dependencies
-        run: npm install
+        run: |
+          # Automatically finds package.json wherever it is and installs dependencies
+          PKG_DIR=$(find . -name "package.json" -exec dirname {} \;)
+          cd "$PKG_DIR"
+          npm install
 
       - name: Start Cloud Bot Instance
-        run: node index.js
+        run: |
+          # Automatically finds index.js or Index.js, navigates to its directory, and starts it
+          BOT_FILE=$(find . -name "index.js" -o -name "Index.js" | head -n 1)
+          BOT_DIR=$(dirname "$BOT_FILE")
+          BOT_BASE=$(basename "$BOT_FILE")
+          cd "$BOT_DIR"
+          node "$BOT_BASE"
