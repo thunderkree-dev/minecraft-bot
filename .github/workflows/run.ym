@@ -1,1 +1,24 @@
+name: 24-7 AFK Bot Runner
 
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Allows you to start it manually clicking a button
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Minecraft Bot Dependencies
+        run: npm install
+
+      - name: Start Cloud Bot Instance
+        run: node index.js
